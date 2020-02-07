@@ -5,10 +5,10 @@
 
 ## Collection
 
-1. List
+#### List
 
-   Java 的 List 是非常常用的数据类型。List 是有序的 Collection。Java List 一共三个实现类：
-   分别是 ArrayList、Vector 和 LinkedList。
+Java 的 List 是非常常用的数据类型。List 是有序的 Collection。Java List 一共三个实现类：
+分别是 ArrayList、Vector 和 LinkedList。
 
 * ArrayList：ArrayList 是最常用的 List 实现类，内部是通过数组实现的，它允许对元素进行快速随机访问。数
   组的缺点是每个元素之间不能有间隔，当数组大小不满足时需要增加存储能力，就要将已经有数
@@ -20,18 +20,18 @@
 * LinkList：LinkedList 是用链表结构存储数据的，很适合数据的动态插入和删除，随机访问和遍历速度比较慢。另外，他还提供了 List 接口中没有定义的方法，专门用于操作表头和表尾元素，可以当作**堆**
   **栈、队列和双向队列**使用。
 
-2. Set 
+#### Set 
 
-   Set 注重独一无二的性质,该体系集合用于存储无序(存入和取出的顺序不一定相同)元素，**值不能重**
-   **复**。对象的相等性本质是对象 hashCode 值（java 是依据对象的内存地址计算出的此序号）判断
-   的，如果想要让两个不同的对象视为相等的，就必须覆盖 Object 的 hashCode 方法和 equals 方
-   法。
+Set 注重独一无二的性质,该体系集合用于存储无序(存入和取出的顺序不一定相同)元素，**值不能重**
+**复**。对象的相等性本质是对象 hashCode 值（java 是依据对象的内存地址计算出的此序号）判断
+的，如果想要让两个不同的对象视为相等的，就必须覆盖 Object 的 hashCode 方法和 equals 方
+法。
 
 * HashSet：基于哈希表实现，存入数据是按照哈希值，所以并不是按照存入的顺序排序，为保证存入的唯一性，存入元素哈希值相同时，会使用 equals 方法比较，如果比较出不同就放入同一个哈希桶里。
 * TreeSet：基于红黑树实现，支持有序性操作，每增加一个对象都会进行排序，将对象插入的二叉树指定的位置。
 * LinkHashSet（ HashSet+LinkedHashMap ）：继承于 HashSet、又是基于 LinkedHashMap 来实现的， 具有 HashSet 的查找效率 。
 
-3. Queue
+#### Queue
 
 ## Map
 
