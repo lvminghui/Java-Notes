@@ -1,5 +1,2 @@
 # Java面试知识点
-## Java基础
-[== 和 equals 的区别](a)
-
-[缓存池和字符串常量池](a)
+- [Java基础](https://github.com/lvminghui/Java-Notes/blob/master/docs/Java%E5%9F%BA%E7%A1%80)
