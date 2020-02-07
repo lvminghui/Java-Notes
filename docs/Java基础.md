@@ -1,4 +1,4 @@
-[== 和 equals 的区别]
+# == 和 equals 的区别
 ## == 解读
 
 
@@ -52,7 +52,7 @@ public boolean equals(Object anObject) {
 
 
 
-[缓存池和字符串常量池]
+# 缓存池和字符串常量池
 ## 缓存池
 基本类型的valueOf() 方法会调用缓存池比较值的大小：
 
