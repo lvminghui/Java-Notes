@@ -128,4 +128,313 @@ public E remove(int index) {
 ```
 
 流程是把需要删除的元素右边的元素向左移动一位，覆盖了需要删除的元素。调用了arraycopy，所以操作代价也很高。
+## CopyOnWriteArrayList
 
+concurrent 并发包下的类，是ArrayList的线程安全解决方案， 通过ReentrantLock获取对象锁的方式来实现线程安全。  
+
+**读写分离的特点**
+
+读：
+
+```java
+@SuppressWarnings("unchecked")
+private E get(Object[] a, int index) {
+    return (E) a[index];
+}
+```
+
+写：
+
+```java
+public boolean add(E e) {
+    final ReentrantLock lock = this.lock;
+    lock.lock();
+    try {
+        Object[] elements = getArray();
+        int len = elements.length;
+        Object[] newElements = Arrays.copyOf(elements, len + 1);
+        newElements[len] = e;
+        setArray(newElements);
+        return true;
+    } finally {
+        lock.unlock();
+    }
+}
+
+final void setArray(Object[] a) {
+    array = a;
+}
+```
+
+写的操作需要加锁，防止并发写入导致数据丢失，不直接操作原数组，先copy一个数组进行操作，写完后setArray方法把新的复制数组赋值给旧数组。
+
+ CopyOnWriteArrayList 在写操作的同时允许读操作，大大提高了读操作的性能，因此很适合读多写少的应用场景。 
+
+缺点：
+
+* 内存占用：在写操作时需要复制一个新的数组，使得内存占用为原来的两倍左右； 
+
+* 数据不一致：读操作不能读取实时性的数据，因为部分写操作的数据还未同步到读数组中。 
+
+所以 CopyOnWriteArrayList 不适合内存敏感以及对实时性要求很高的场景。 
+
+## LinkedList
+
+#### 1. 概览
+
+内部私有类Node：
+
+```java
+private static class Node<E> {
+    E item;
+    Node<E> next;
+    Node<E> prev;
+}
+```
+
+定义：
+
+```java
+transient Node<E> first;
+transient Node<E> last;
+```
+
+ 补充：**transient**关键字标记的成员变量不参与序列化过程。 
+
+综上可看出，LinkedList是由双向列表实现，使用Node存储节点信息，每个节点都有前节点（next），本节点（item），后节点（prev）。
+
+#### 2.与 ArrayList 的比较
+
+* ArrayList 基于动态数组实现，LinkedList 基于双向链表实现。 
+* ArrayList插入删除元素时分两种情况：①把元素添加到末尾所需的时间复杂度是O(1)，②在指定位置添加删除元素时就需要移动整个数组，操作代价就比较大了。LinkedList 对于添加删除方法只需要断链然后更改指向，所需的消耗就很小了。
+* ArrayList 支持高效的随机元素访问 而LinkedList 不支持。
+* ArrayList的空 间浪费主要体现在在list列表的结尾会预留一定的容量空间，而LinkedList的空间花费则体现在它的每一个元素都需要消耗比ArrayList更多的空间（因为要存放直接后继和直接前驱以及数据）。 
+
+## HashMap
+
+#### 1.整体原理分析 
+
+ HashMap类中有一个非常重要的字段，就是  Node[] table，即哈希桶数组 
+
+```java
+static class Node<K,V> implements Map.Entry<K,V> {
+        final int hash;
+        final K key;
+        V value;
+        Node<K,V> next;
+
+        Node(int hash, K key, V value, Node<K,V> next) {
+            this.hash = hash;
+            this.key = key;
+            this.value = value;
+            this.next = next;
+        }
+```
+
+
+
+ Node是HashMap的一个内部类，实现了Map.Entry接口，本质是就是一个映射(键值对)。 
+
+hash:hashcode经过扰动函数得到的值， 然后通过 `(n - 1) & hash` 判断当前元素存放的位置，如果当前
+
+位置存在hash和key值不相同的元素就使用拉链法解决冲突。
+
+**“拉链法”** 就是：将链表和数组相结合。也就是说创建一个链表数组，数组中每一格就是一个链表。若遇到哈希冲突，则将冲突的值加到链表中即可。 
+
+Node<K,V> next：next就是用于链表的指向。
+
+所谓**扰动函数**指的就是 HashMap 的 hash 方法。使用 hash 方法也就是扰动函数是为了防止一些实现比较差的 hashCode() 方法 换句话说使用扰动函数之后可以减少碰撞。 
+
+底层存储结构：
+<div align="center"> <img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/2.png"/> </div><br>
+
+
+#### 2.put方法分析
+
+map.put("a","b")的整个流程：
+
+1. 计算出a字符串的hashcode值，然后执行扰动函数hash得到a的hash值。
+2. 构造出Node对象，其中包含了hash，Key，Value，Next。
+3. 然后通过路由算法找出node应存放在数组的位置。
+4. 判断该位置是否有hash和key值不相同的元素，如果有就使用拉链法解决。
+
+下面上源码：
+
+```java
+public V put(K key, V value) {
+    return putVal(hash(key), key, value, false, true);
+}
+
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                   boolean evict) {
+    //tab: 引用当前hashMap的散列表
+	//p: 表示当前散列表的元素
+	//n: 表示散列表数组的长度
+	//i: 表示路由寻址结果
+    Node<K,V>[] tab; Node<K,V> p; int n, i;
+    // table未初始化或者长度为0，进行扩容（采用了延时初始化，第一次put才会初始化散列表。）
+    if ((tab = table) == null || (n = tab.length) == 0)
+        n = (tab = resize()).length;
+    // 寻址找到的桶位为null
+    //(n - 1) & hash 确定元素存放在哪个桶中，桶为空，新生成结点放入桶中(此时，这个结点是放在数组中)
+    if ((p = tab[i = (n - 1) & hash]) == null)
+        tab[i] = newNode(hash, key, value, null);
+    // 寻址找到的桶位已经存在元素
+    else {
+        Node<K,V> e; K k;
+        // 比较桶中第一个元素(数组中的结点)的hash值相等，key相等，也就是判断是否是重复的值。
+        if (p.hash == hash &&
+            ((k = p.key) == key || (key != null && key.equals(k))))
+                // 完全一致
+            	//e:找到的一个与当前要插入的元素一直的元素
+                e = p;
+        // hash值不相等，即key不相等；且为红黑树结点
+        else if (p instanceof TreeNode)
+            // 放入树中
+            e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+        // 为链表结点
+        else {
+            // 在链表最末插入结点
+            for (int binCount = 0; ; ++binCount) {
+                // 到达链表的尾部
+                if ((e = p.next) == null) {
+                    // 在尾部插入新结点
+                    p.next = newNode(hash, key, value, null);
+                    // 结点数量达到阈值，转化为红黑树
+                    if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                        treeifyBin(tab, hash);
+                    break;
+                }
+                // 判断链表中结点的key值与插入的元素的key值是否相等
+                if (e.hash == hash &&
+                    ((k = e.key) == key || (key != null && key.equals(k))))
+                    // 相等，跳出循环
+                    break;
+                // 用于遍历桶中的链表，与前面的e = p.next组合，可以遍历链表
+                p = e;
+            }
+        }
+        // 表示在桶中找到key值、hash值与插入元素相等的结点
+        if (e != null) { 
+            // 记录e的value
+            V oldValue = e.value;
+            // onlyIfAbsent为false或者旧值为null
+            if (!onlyIfAbsent || oldValue == null)
+                //替换
+                e.value = value;
+            afterNodeAccess(e);
+            return oldValue;
+        }
+    }
+    // 结构性修改
+    ++modCount;
+    // 实际大小大于阈值则扩容
+    if (++size > threshold)
+        resize();
+    // 插入后回调
+    afterNodeInsertion(evict);
+    return null;
+} 
+```
+
+综上put的方法流程图为：
+<div align="center"> <img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/put方法流程图.png"/> </div><br>
+
+
+tip： JDK1.7之前的put方法和现在流程不同的地方就是采用头插法插入元素。
+
+#### 3.扩容（resize方法）
+
+扩容会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，是非常耗时的。在编写程序中，要尽量避免resize。 源码在下面，仔细阅读即可理解此方法。
+
+```java
+final Node<K,V>[] resize() {
+    Node<K,V>[] oldTab = table;
+    int oldCap = (oldTab == null) ? 0 : oldTab.length;
+    int oldThr = threshold;
+    int newCap, newThr = 0;
+    //散列表已经被初始化了，是一次正常扩容
+    if (oldCap > 0) {
+        // 超过最大值就不再扩充了
+        if (oldCap >= MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE;
+            return oldTab;
+        }
+        // 没超过最大值，就扩充为原来的2倍
+        else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY && oldCap >= DEFAULT_INITIAL_CAPACITY)
+            newThr = oldThr << 1; // double threshold：翻倍
+    }
+     //散列表没有被初始化
+    else if (oldThr > 0) // 初始化的容量是已经指定了的
+        newCap = oldThr;
+    else { 
+        // 默认初始化容量
+        newCap = DEFAULT_INITIAL_CAPACITY;//16
+        newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);//12
+    }
+    // 计算新的resize上限
+    if (newThr == 0) {
+        float ft = (float)newCap * loadFactor;
+        newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ? (int)ft : Integer.MAX_VALUE);
+    }
+    threshold = newThr;
+    @SuppressWarnings({"rawtypes","unchecked"})
+        Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+    table = newTab;
+    if (oldTab != null) {
+        // 把每个bucket都移动到新的buckets中
+        for (int j = 0; j < oldCap; ++j) {
+            Node<K,V> e;
+            //当前桶位有数据，但不清楚是什么数据。
+            if ((e = oldTab[j]) != null) {
+                //方便 GC
+                oldTab[j] = null;
+                //如果是单个元素
+                if (e.next == null)
+                    newTab[e.hash & (newCap - 1)] = e;
+                //如果是红黑树
+                else if (e instanceof TreeNode)
+                    ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+                else { //桶位已经形成链表
+                    Node<K,V> loHead = null, loTail = null;//低位链表
+                    Node<K,V> hiHead = null, hiTail = null;//高位链表
+                    Node<K,V> next;
+                    do {
+                        next = e.next;
+                        // 原索引，给低位链表赋值
+                        if ((e.hash & oldCap) == 0) {
+                            if (loTail == null)
+                                loHead = e;
+                            else
+                                loTail.next = e;
+                            loTail = e;
+                        }
+                        // 原索引+oldCap，给高位链表赋值
+                        else {
+                            if (hiTail == null)
+                                hiHead = e;
+                            else
+                                hiTail.next = e;
+                            hiTail = e;
+                        }
+                    } while ((e = next) != null);
+                    // 原索引放到桶里
+                    if (loTail != null) {
+                        loTail.next = null;
+                        newTab[j] = loHead;
+                    }
+                    // 原索引+oldCap放到桶里
+                    if (hiTail != null) {
+                        hiTail.next = null;
+                        newTab[j + oldCap] = hiHead;
+                    }
+                }
+            }
+        }
+    }
+    return newTab;
+}
+```
+
+在扩容时看原hash值新增的那个bit位是1还是0就好了，是0的话索引没有变，是1的话索引变成“原索引+oldCap（旧数组大小）”，下图位resize（）方法示意图： 
+<div align="center"> <img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/3.png"/> </div><br>
