@@ -438,3 +438,29 @@ final Node<K,V>[] resize() {
 
 在扩容时看原hash值新增的那个bit位是1还是0就好了，是0的话索引没有变，是1的话索引变成“原索引+oldCap（旧数组大小）”，下图位resize（）方法示意图： 
 <div align="center"> <img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/3.png"/> </div><br>
+
+
+## ConcurrentHashMap
+
+**JDK1.7：**
+
+ ConcurrentHashMap 和 HashMap 实现上类似，最主要的差别是 ConcurrentHashMap 采用了分段锁（Segment），每个分段锁维护着几个桶（HashEntry），多个线程可以同时访问不同分段锁上的桶，从而使其并发度更高（并发度就是 Segment 的个数）。  **Segment 继承自 ReentrantLock ，默认的并发级别为 16 。** 
+
+简单理解就是，ConcurrentHashMap 是一个 Segment 数组，Segment 通过继承
+ReentrantLock 来进行加锁，所以每次需要加锁的操作锁住的是一个 segment，这样只要保证每
+个 Segment 是线程安全的，也就实现了全局的线程安全。
+
+结构如图：
+<div align="center"> <img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/concurrentHashMap7.png"/> </div><br>
+
+**JDK1.8：**
+
+使用了 CAS 操作来支持更高的并发度，在 CAS 操作失败时使用内置锁 synchronized。  synchronized只锁定当前链表或红黑二叉树的首节点，这样只要hash不冲突，就不会产生并发，效率又提升N倍。 
+
+
+
+##   **HashSet ** 
+
+实现原理： HashSet底层由HashMap实现 ，值存放于HashMap的key上 ，HashMap的value统一为PRESENT 。
+
+检查重复： 先对插入的元素的hashcode值和现有的元素的hashcode作比较，如果没有相符的hashcode，HashSet会假设对象没有重复出现，直接插入。但是如果发现有相同hashcode值的对象，这时会调用`equals（）`方法来检查hashcode相等的对象是否真的相同。  如果两者相同，HashSet就不会让加入操作成功 。
