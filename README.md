@@ -7,3 +7,6 @@
 
 ## Linux
 - [Linux面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/Linux%E9%9D%A2%E8%AF%95%E9%A2%98.md)
+
+## MySQL
+-[MySQL面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/MySQL%E9%9D%A2%E8%AF%95%E9%A2%98.md)
