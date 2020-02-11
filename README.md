@@ -18,6 +18,7 @@
 **阅读建议：**
 
 * 鉴于 GitHub 网页端对于目录的支持性问题，我在单个章节没有创建目录，如有需要，建议使用 Chrome 的插件 **简悦** 阅读，当然你也可以 download 后使用 Typora 阅读。
+* 如果对你有帮助，请轻点 Star 支持，给我更大的动力 :D
 
 # Java 知识点及面试题
 ## Java基础
@@ -25,6 +26,8 @@
 ## Java容器
 - [Java容器知识点梳理](https://github.com/lvminghui/Java-Notes/blob/master/docs/Java%20%E5%AE%B9%E5%99%A8.md)
 - [集合框架面试题及解析](https://github.com/lvminghui/Java-Notes/blob/master/docs/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6%E9%9D%A2%E8%AF%95%E7%9F%A5%E8%AF%86%E7%82%B9.md)
+## Java 并发
+- [Java 并发](https://github.com/lvminghui/Java-Notes/blob/master/docs/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%9D%A2%E8%AF%95%E9%A2%98.md)
 
 ## Linux
 - [Linux面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/Linux%E9%9D%A2%E8%AF%95%E9%A2%98.md)
