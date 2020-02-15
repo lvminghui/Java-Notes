@@ -320,7 +320,9 @@ order by，group by或者关联查询是否使用了索引。
 **常见索引失效：**
 1 . 系统中经常出现的sql语句如下：
 EXPLAIN SELECT SQL_NO_CACHE * FROM emp WHERE emp.age=30
+
 EXPLAIN SELECT SQL_NO_CACHE * FROM emp WHERE emp.age=30 and deptid=4
+
 EXPLAIN SELECT SQL_NO_CACHE * FROM emp WHERE emp.age=30 and deptid=4 AND emp.name = ‘abcd’
 
 解决：
@@ -340,23 +342,36 @@ CREATE INDEX idx_age_deptid_name ON emp(age,deptid,NAME)
 7.字符串不加单引号索引失效，javabean类型和mysql字段的字符类型要一直，不然所以会失效。
 
 **关联查询优化**
+
 1、保证被驱动表的join字段已经被索引
+
 2、left join 时，选择小表作为驱动表，大表作为被驱动表。
+
 3、inner join 时，mysql会自己帮你把小结果集的表选为驱动表。
+
 4、子查询尽量不要放在被驱动表，有可能使用不到索引。
+
 5、能够直接多表关联的尽量直接关联，不用子查询。
+
 子查询优化：
+
 尽量不要使用not in 或者 not exists
+
 用left outer join on xxx is null 替代
 
 **排序分组优化**：
 
 普通order by不能使用索引
+
 **无过滤 不索引**，可加上过滤条件，使用索引
+
 **顺序错，必排序**排序的顺序要对应
+
 **方向反 必排序** desc asc要一样
+
 ORDER BY子句，尽量使用Index方式排序,避免使用FileSort方式排序
+
 
 group by 使用索引的原则几乎跟order by一致 ，唯一区别是groupby 即使没有过滤条件用到索引，也可以直接使用索引。
 
-**最后使用索引的手段：覆盖索引 即不要使用select * **
+`最后使用索引的手段：覆盖索引 即不要使用select * `
