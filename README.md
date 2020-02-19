@@ -41,4 +41,4 @@
 ## Spring 
 - [SpringBean 的生命周期](https://github.com/lvminghui/Java-Notes/blob/master/docs/SpringBean%20%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.md)
 - [Spring 面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/Spring%20%E9%9D%A2%E8%AF%95%E9%A2%98.md)
-
+- [Spring的设计理念和设计模式分析](https://github.com/lvminghui/Java-Notes/blob/master/docs/Spring%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5%E5%92%8C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90.md)
