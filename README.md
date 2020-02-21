@@ -38,6 +38,9 @@
 - [MySQL 面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/MySQL%E9%9D%A2%E8%AF%95%E9%A2%98.md)
 - [MySQL 常见知识点总结](https://github.com/lvminghui/Java-Notes/blob/master/docs/MySQL%E5%B8%B8%E8%A7%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93.md)
 
+## Redis
+-[Redis 面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/Redis%20%E9%9D%A2%E8%AF%95%E9%A2%98.md)
+
 ## Spring 
 - [SpringBean 的生命周期](https://github.com/lvminghui/Java-Notes/blob/master/docs/SpringBean%20%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.md)
 - [Spring 面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/Spring%20%E9%9D%A2%E8%AF%95%E9%A2%98.md)
