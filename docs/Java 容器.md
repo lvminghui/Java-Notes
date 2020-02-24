@@ -251,7 +251,6 @@ Node<K,V> next：next就是用于链表的指向。
 
 #### 2.put方法分析
 
-map.put("a","b")的整个流程：
 
 map.put("a","b")的整个流程：
 
@@ -470,8 +469,7 @@ ReentrantLock 来进行加锁，所以每次需要加锁的操作锁住的是一
 使用了 CAS 操作来支持更高的并发度，在 CAS 操作失败时使用内置锁 synchronized。  synchronized只锁定当前链表或红黑二叉树的首节点，这样只要hash不冲突，就不会产生并发，效率又提升N倍。 
 
 
-
-##   **HashSet ** 
+## HashSet 
 
 实现原理： HashSet底层由HashMap实现 ，值存放于HashMap的key上 ，HashMap的value统一为PRESENT 。
 
