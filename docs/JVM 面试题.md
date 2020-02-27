@@ -33,7 +33,7 @@
 
 堆内存模型：
 
-![image-20200227234850635](C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\image-20200227234850635.png)
+![image-20200227234850635](https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/JVM.png)
 
  **此内存区域的唯一目的就是存放对象实例，几乎所有的对象实例以及数组都在这里分配内存。** 
 
