@@ -13,7 +13,7 @@
 * 准备面试的 Java 初/中级工程师。
 * 希望掌握 Java 最流行知识点的编程爱好者。
 
-**体系结构：** Java基础，Java容器，Java 并发，JVM，网络基础，Linux，MySQL，Redis，Spring全家桶....
+**体系结构：** Java 基础，Java 容器，Java 并发，JVM，网络基础，Linux，MySQL，Redis，Spring 全家桶....
 
 **阅读建议：**
 
