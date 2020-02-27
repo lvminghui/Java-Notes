@@ -31,6 +31,8 @@
 - [Java 并发基础](https://github.com/lvminghui/Java-Notes/blob/master/docs/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80.md)
 - [Java 并发面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%9D%A2%E8%AF%95%E9%A2%98.md)
 
+## JVM 
+- [JVM 面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/JVM%20%E9%9D%A2%E8%AF%95%E9%A2%98.md)
 ## 设计模式
 - [设计模式](https://github.com/lvminghui/Java-Notes/blob/master/docs/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F.md)
 
