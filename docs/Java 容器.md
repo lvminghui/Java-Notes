@@ -37,10 +37,12 @@ Set 注重独一无二的性质,该体系集合用于存储无序(存入和取�
 
 1. HashMap： 根据键的 hashCode 值存储数据，大多数情况下可以直接定位到它的值，因而具有很快
    的访问速度，但遍历顺序却是不确定的。 HashMap 非线程安全，底层实现为数组+链表+红黑树。
-2. ConcurrentHashMap：**支持并发操作的HashMap**，使用Segment实现线程安全。
-3. HashTable：Hashtable 是遗留类，不建议使用，很多映射的常用功能与 HashMap 类似，线程安全的。
-4. TreeMap： 红黑树实现，可排序。
-5. LinkHashMap： 是 HashMap 的一个子类，保存了记录的插入顺序，在用 Iterator 遍历 LinkedHashMap 时，先得到的记录肯定是先插入的，也可以在构造时带参数，按照访问次序排序。
+2. ConcurrentHashMap：**支持并发操作的HashMap**，在JDK1.7和1.8实现线程安全的方式不同。
+3. HashTable：Hashtable 是遗留类，不建议使用，很多映射的常用功能与 HashMap 类似，通过 synchronized 把整个（table）表锁住来实现线程安全的，效率十分低下。
+4. TreeMap： 红黑树实现，可排序，需要对一个有序的key集合进行遍历时建议使用。
+5. LinkHashMap： 是 HashMap 的一个子类， 增加了一条双向链表， **从而可以保存记录的插入顺序**，在用 Iterator 遍历 LinkedHashMap 时，先得到的记录肯定是先插入的，也可以在构造时带参数，按照访问次序排序。
+
+
 
 
 
@@ -474,3 +476,51 @@ ReentrantLock 来进行加锁，所以每次需要加锁的操作锁住的是一
 实现原理： HashSet底层由HashMap实现 ，值存放于HashMap的key上 ，HashMap的value统一为PRESENT 。
 
 检查重复： 先对插入的元素的hashcode值和现有的元素的hashcode作比较，如果没有相符的hashcode，HashSet会假设对象没有重复出现，直接插入。但是如果发现有相同hashcode值的对象，这时会调用`equals（）`方法来检查hashcode相等的对象是否真的相同。  如果两者相同，HashSet就不会让加入操作成功 。
+##  LinkedHashMap 
+
+ ### LinkedHashMap 实现LRU（least recently used）
+
+- 设定最大缓存空间 MAX_ENTRIES 为 3；
+- 使用 LinkedHashMap 的构造函数将 accessOrder 设置为 true，开启 LRU 顺序；
+- 覆盖 removeEldestEntry() 方法实现，在节点多于 MAX_ENTRIES 就会将最近最久未使用的数据移除。
+
+```java
+class LRUCache<K, V> extends LinkedHashMap<K, V> {
+    private static final int MAX_ENTRIES = 3;
+
+    protected boolean removeEldestEntry(Map.Entry eldest) {
+        return size() > MAX_ENTRIES;
+    }
+
+    LRUCache() {
+        super(MAX_ENTRIES, 0.75f, true);
+    }
+}
+public static void main(String[] args) {
+    LRUCache<Integer, String> cache = new LRUCache<>();
+    cache.put(1, "a");
+    cache.put(2, "b");
+    cache.put(3, "c");
+    cache.get(1);
+    cache.put(4, "d");
+    System.out.println(cache.keySet());
+}
+```
+
+ ## TreeMap
+
+### TreeMap 其 key 对象为什么必须要实现 Compare 接口
+
+通过阅读 TreeMap 的 put 方法的源码发现：TreeMap 实现元素不重复就是通过调用 compareTo 方法，而要使用 compareTo 方法就必须实现Compare接口。
+
+## BlockingQueue 的实现类
+
+ArrayBlockingQueue 底层是数组，有界队列，如果我们要使用生产者-消费者模式，这是非常好的选择。
+
+LinkedBlockingQueue 底层是链表，可以当做无界和有界队列来使用，所以大家不要以为它就是无界队列。
+
+DelayQueue是一个无界阻塞队列，只有在延迟期满时才能从中提取元素。该队列的头部是延迟期满后保存时间最长的Delayed 元素。
+
+SynchronousQueue 本身不带有空间来存储任何元素，使用上可以选择公平模式和非公平模式。
+
+PriorityBlockingQueue 是无界队列，基于数组，数据结构为二叉堆，数组第一个也是树的根节点总是最小值。
