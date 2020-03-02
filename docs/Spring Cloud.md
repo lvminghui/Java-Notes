@@ -26,7 +26,7 @@ Eureka 客户端在程序关闭时向 Eureka 服务器发送取消请求。发�
 
  **架构图**： 
 
-![image-20200229172633604](C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\image-20200229172633604.png)
+![image-20200229172633604](https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/Eureka.png)
 
  可以充当服务发现的组件有很多：Zookeeper ，Consul ， Eureka 等。 
 
