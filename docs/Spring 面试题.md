@@ -2,24 +2,29 @@
 
 让 java 开发模块化，并且全面。Spring 通过控制反转降低耦合性，一个对象的依赖通过被动注入的方式而非主动 new，还通过代理模式实现了面向切面编程。
 
-## IOC 是什么，什么是 Spring IOC 容器？
+## IOC 是什么，什么是 Spring IOC 容器？⭐
 
-IOC 是一种设计思想。 **IOC 容器是 Spring 用来实现 IOC 的载体， IOC 容器在某种程度上就是个Map（key，value）,key是 name 属性，Map 是对应的对象。**容器创建 Bean 对象， 使用依赖注入来管理对象之间的相互依赖关系，配置它们并管理它们的完整生命周期，很大程度上简化应用的开发，降低了耦合度。
+IOC 是一种设计思想。 **IOC 容器是 Spring 用来实现 IOC 的载体， IOC 容器在某种程度上就是个Map（key，value）,key是 name 属性，value 是对应的对象。**容器创建 Bean 对象， 使用依赖注入来管理对象之间的相互依赖关系，配置它们并管理它们的完整生命周期，很大程度上简化应用的开发，降低了耦合度。
 
 容器通过读取提供的配置,比如 XML，注解或 Java 代码来接收对象信息进行实例化，配置和组装。
 
-### IoC 的实现机制⭐
+Spring在创建容器时有一个点就是利用了模板方法设计模式设计了 refresh 方法，这个方法是模板方法，低级容器实现了 obtainFreshBeanFactory 的抽象方法，调用 refreshBeanFactory 加载了所有 BeanDefinition 和 Properties 到 **DefaultListableBeanFactory** 容器中。发送了注册事件后高级容器启动功能，比如接口回调，监听器，创建单例bean，发布事件等功能。 
 
-实现原理就是工厂模式加反射机制。  
+### IoC 的实现机制/初始化流程⭐
 
-* Spring 容器在启动的时候，先会保存所有注册进来的 Bean 的定义信息， 注册到 BeanFactory 中。 注册也只是将这些信息都保存到了注册中心(说到底核心是一个 beanName-> beanDefinition 的 map) 
-* 设置 BeanFactory 的类加载器，添加几个 BeanPostProcessor，手动注册几个特殊的 bean，如environment、systemProperties  
-* 如果有 Bean 实现了 BeanFactoryPostProcessor 接口，Spring 会负责调用里面的 postProcessBeanFactory 方法，这是一个扩展方法
-* 注册 BeanPostProcessor 的实现类，这是在 Bean 初始化前后执行的方法
+主要实现原理就是工厂模式加反射机制。  
+
+调用 refresh() 方法：
+
+* 刷新准备，设置开始时间，状态， 初始化占位符等操作
+
+* 获取内部的 BeanFactory，Spring 容器在启动的时候，先会保存所有注册进来的 Bean 的定义信息， 注册到 BeanFactory 中。 
+* 设置 BeanFactory 的类加载器和后置处理器，添加几个 BeanPostProcessor，手动注册默认的环境 bean
+* 为子类提供后置处理 BeanFactory 的扩展能力，初始化上下文之前，可以复写 postProcessBeanFactory这个方法
+* 执行 Context 中注册的 BeanFactory 后置处理器，对 SpringBoot 来说，这一步会进行 BeanDefintion 的解析
+* 按优先级在 BeanFactory 注册 Bean 的后置处理器，这是在 Bean 初始化前后执行的方法
 * 初始化国际化，事件广播器的模块，注册事件监听器
-* 然后 **Spring容器就会创建这些单例 Bean**
-  1. 用到这个 Bean 的时候；利用 getBean 创建 Bean,创建好以后保存在容器中；
-  2. 统一创建剩下所有的 Bean 的时候；调用 finishBeanFactoryInitialization() 初始化所有剩下的单例 Bean。
+* 然后 **Spring容器就会创建这些非延迟加载的单例 Bean**
 * 最后广播事件，ApplicationContext 初始化/刷新完成 
 
 具体源码实现分析请看我的另一篇文章 。
@@ -36,24 +41,68 @@ IOC 是一种设计思想。 **IOC 容器是 Spring 用来实现 IOC 的载体�
 
 - **Singleton** - 每个 Spring IoC 容器仅有一个单实例。
 - **Prototype** - 每次请求都会产生一个新的实例。
-- **Request** - 每一次 HTTP 请求都会产生一个新的实例，并且该 bean 仅在当前 HTTP 请求内有效。
-- **Session** - 每一次 HTTP 请求都会产生一个新的 bean，同时该 bean 仅在当前 HTTP session 内有效。
-- **Global-session** - 类似于标准的 HTTP Session 作用域，不过它仅仅在基于 portlet 的 web 应用中才有意义。如果你在 web 中使用 global session 作用域来标识 bean，那么 web 会自动当成 session 类型来使用。
+- **Request** - 每次请求都会创建一个实例
+- **Session** - 在一个会话周期内只有一个实例
+- Global-session - 类似于标准的 HTTP Session 作用域，5.0版本后已不再使用
+- **Appilcation** - 在一个 ServletContext 中只有一个实例
+- **Websocket** - 在一个 Websocket 只有一个实例
 
-仅当用户使用支持 Web 的 ApplicationContext 时，最后三个才可用。
+仅当用户使用支持 Web 的 ApplicationContext 时，最后几个才可用。
 
 #### Bean 的生命周期⭐
 
-防止篇幅过长和内容重复，请看 SpringIOC 源码分析
+* Bean容器/BeanFactory 通过对象的构造器或工厂方法先实例化 Bean；
 
-#### Spring 中的单例 bean 的线程安全问题
+* 再根据 Resource 中的信息再通过设定好的方法（典型的有setter，统称为BeanWrapper）对 Bean 设置属性值，得到 BeanDefintion 对象，然后 put 到 beanDefinitionMap 中，调用 getBean 的时候，从  beanDefinitionMap 里拿出 Class 对象进行注入（**使用了反射**），同时如果有依赖关系，将递归调用 getBean 方法，即依赖注入的过程。 
 
-Spring容器中的Bean是否线程安全，容器本身并没有提供 Bean 的线程安全策略，因此可以说 Spring 容器中的Bean本身不具备线程安全的特性，但是具体还是要结合具体 scope 的 Bean 去研究。 
+* 检查 xxxAware 相关接口，比如 BeanNameAware，BeanClassLoaderAware，ApplicationContextAware（ BeanFactoryAware）等等，如果有就调用相应的 setxxx 方法把所需要的xxx传入到 Bean 中。
 
-常见的有两种解决办法：
+  **补充**：关于 Aware ，Aware 就是感知的意思， Aware 的目的是为了让Bean获得Spring容器的服务。 实现了这类接口的 bean 会存在“意识感”，从而让容器调用 setxxx 方法把所需要的 xxx 传到 Bean 中。
 
-1. 在Bean对象中尽量避免定义可变的成员变量（不太现实）。
-2. 在类中定义一个ThreadLocal成员变量，将需要的可变成员变量保存在 ThreadLocal 中（推荐的一种方式）。
+* 此时检查是否存在有于 Bean 关联的任何  BeanPostProcessors， 执行 postProcessBeforeInitialization() 方法（前置处理器）。
+
+* 如果 Bean 实现了InitializingBean接口（正在初始化的 Bean），执行 afterPropertiesSet() 方法。
+
+* 检查是否配置了自定义的 init-method 方法，如果有就调用。
+
+* 此时检查是否存在有于 Bean 关联的任何  BeanPostProcessors， 执行 postProcessAfterInitialization() 方法（后置处理器）。返回 wrapperBean（包装后的 Bean）。
+
+* 这时就可以开始使用 Bean 了，当容器关闭时，会检查 Bean 是否实现了 DisposableBean 接口，如果有就调用 destory() 方法。
+
+* 如果 Bean 配置文件中的定义包含 destroy-method 属性，执行指定的方法。 
+
+上面整个过程就是 Bean 的整个生命周期了。
+
+**Bean 单例和多例的情况：**
+
+在实际情况中一般并不会实现很多扩展接口，我们知道，Bean 的基本类型分为 singleton（单例） 和 prototype（原型/多例） 两种，在容器创建过程中，单例 Bean 默认跟随容器一起实例化，而当我们指定 Bean节点的 lazy-init=”true” 时，只有在第一次获取 Bean 的时候才会初始化 Bean。当然，如果想让所有单例 Bean 都延迟加载，可以在根节点设置此属性。
+
+当 scope="prototype" 时，容器也会延迟初始化 Bean，并不会立刻创建对象，而是在第一次请求该 bean 时才初始化（如调用 getBean 方法时）。和单例不同的情况是：在对象销毁时，容器不会帮我们调用任何方法。
+
+Spring不能对一个 prototype bean 的整个生命周期负责：容器在初始化、配置、装饰或者是装配完一个 prototype 实例后，将它交给客户端，随后就对该prototype 实例不闻不问了。
+
+也许你会问，那么怎么释放被 prototype 作用域 bean 占用的资源？
+
+我们可以通过 Bean 的后置处理器， 该处理器持有要被清除的bean的引用。
+
+Spring 被设计成**一个管理应用程序模块定义的容器以及工厂，而不是管理模块自身的容器**，让模块可以分别独立开发，实现了模块之间的解耦。 
+
+为什么要使用Spring：
+
+1. Spring提供一个容器/工厂，统一管理模块的定义，根据需要创建。
+2. 把模块的配置参数统一管理，模块不需要自行读取配置。
+3. Spring提供依赖注入，把依赖的模块自动推送进来，不需要模块自己拉取。
+4. 此外，Spring提供了对很多其他第三方框架的集成功能，减少了样板代码（boilerplate）。
+
+## 常见扩展接口
+
+BeanFactoryPostProcessor：处理所有bean前,对bean factory进行预处理
+BeanDefinitionRegistryPostProcessor：可以添加自定义的bean
+BeanPostProcessor：支持在Bean初始化前、后对bean进行处理
+ApplicationContextAware：可以获得ApplicationContext及其中的bean
+InitializingBean：在bean创建完成,所有属性注入完成后执行
+DisposableBean：在bean销毁前执行
+ApplicationListener：用来监听产生的应用事件
 
 ### Spring的后置处理器
 
@@ -118,9 +167,9 @@ Spring使用了三级缓存解决了循环依赖的问题。在populateBean()给
 
 **现在再来了解一下三级缓存：**
 
-1. `singletonObjects`：第一级单例缓存池。用于存放完全初始化好的 bean，**从该缓存中取出的 bean 可以直接使用**
+1. `singletonObjects`：第一级，单例缓存池。用于存放完全初始化好的 bean，**从该缓存中取出的 bean 可以直接使用**
 2. `earlySingletonObjects`：第二级。提前曝光的单例对象的cache，存放原始的 bean 对象（尚未填充属性的 bean）
-3. `singletonFactories`：第三纪单例对象工厂缓存 。单例对象工厂的cache，存放 bean 工厂对象
+3. `singletonFactories`：第三级，单例对象工厂缓存 。单例对象工厂的cache，存放 bean 工厂对象
 
 **了解完缓存就可以开始了解单例 Bean 的创建过程：**
 
@@ -161,56 +210,14 @@ JDK 动态代理基于接口，所以只有接口中的方法会被增强，而 
 
 ### 实现原理
 
-JDK动态代理：基于反射，生成实现代理对象接口的匿名类，通过生成代理实例时传递的InvocationHandler处理程序实现方法增强。
+JDK动态代理：基于反射，利用反射机制生成一个实现代理接口的匿名类，在调用具体方法前调用InvokeHandler来处理。 
 CGLIB动态代理：基于操作字节码，通过加载代理对象的类字节码，为代理对象创建一个子类，并在子类中拦截父类方法并织入方法增强逻辑。底层是依靠ASM（开源的java字节码编辑类库）操作字节码实现的。 
 
-## AspectJ 和 Spring AOP 的对比：
-
-**Spring AOP：**
-
-- 它基于动态代理来实现。默认地，如果使用接口的，用 JDK 提供的动态代理实现，如果没有接口，使用 CGLIB 实现。大家一定要明白背后的意思，包括什么时候会不用 JDK 提供的动态代理，而用 CGLIB 实现。
-- Spring 的 IOC 容器和 AOP 都很重要，Spring AOP 需要依赖于 IOC 容器来管理。
-- Spring AOP 只能作用于 Spring 容器中的 Bean，它是使用纯粹的 Java 代码实现的，只能作用于 bean 的方法。
-- Spring 提供了 AspectJ 的支持，一般来说我们用**纯的** Spring AOP 就够了。
-- 很多人会对比 Spring AOP 和 AspectJ 的性能，Spring AOP 是基于代理实现的，在容器启动的时候需要生成代理实例，在方法调用上也会增加栈的深度，使得 Spring AOP 的性能不如 AspectJ 那么好。
-
-**AspectJ：**
-
-- 属于静态织入，它是通过修改代码来实现的，它的织入时机可以是：
-  - Compile-time weaving：编译期织入，如类 A 使用 AspectJ 添加了一个属性，类 B 引用了它，这个场景就需要编译期的时候就进行织入，否则没法编译类 B。
-  - Post-compile weaving：也就是已经生成了 .class 文件，或已经打成 jar 包了，这种情况我们需要增强处理的话，就要用到编译后织入。
-  - **Load-time weaving**：指的是在加载类的时候进行织入，要实现这个时期的织入，有几种常见的方法。1、自定义类加载器来干这个，这个应该是最容易想到的办法，在被织入类加载到 JVM 前去对它进行加载，这样就可以在加载的时候定义行为了。2、在 JVM 启动的时候指定 AspectJ 提供的 agent：`-javaagent:xxx/xxx/aspectjweaver.jar`。
-
-- AspectJ 能干很多 Spring AOP 干不了的事情，它是 **AOP 编程的完全解决方案**。Spring AOP 致力于解决的是企业级开发中最普遍的 AOP 需求（方法织入），而不是力求成为一个像 AspectJ 一样的 AOP 编程完全解决方案。
-- 因为 AspectJ 在实际代码运行前完成了织入，所以大家会说它生成的类是没有额外运行时开销的。
+## AspectJ 和 Spring AOP 
 
 ### 区别
 
-**Spring AOP 属于运行时增强，而 AspectJ 是编译时增强。** Spring AOP 基于代理(Proxying)，而 AspectJ 基于字节码操作(Bytecode Manipulation)。
-
-Spring AOP 已经集成了 AspectJ ，AspectJ 应该算的上是 Java 生态系统中最完整的 AOP 框架了。AspectJ 相比于 Spring AOP 功能更加强大，但是 Spring AOP 相对来说更简单，
-
-如果我们的切面比较少，那么两者性能差异不大。但是，当切面太多的话，最好选择 AspectJ ，它比Spring AOP 快很多。
-
-### **什么是切点（JoinPoint）**
-
-程序运行中的一些时间点, 例如一个方法的执行, 或者是一个异常的处理.
-
-在 Spring AOP 中, join point 总是方法的执行点。
-
-### **什么是通知（Advice）？**
-
-特定 JoinPoint 处的 Aspect 所采取的动作称为 Advice。Spring AOP 使用一个 Advice 作为拦截器，在 JoinPoint “周围”维护一系列的拦截器。
-
-### **有哪些类型的通知（Advice）？**
-
-- **Before** - 这些类型的 Advice 在 joinpoint 方法之前执行，并使用 @Before 注解标记进行配置。
-- **After Returning** - 这些类型的 Advice 在连接点方法正常执行后执行，并使用@AfterReturning 注解标记进行配置。
-- **After Throwing** - 这些类型的 Advice 仅在 joinpoint 方法通过抛出异常退出并使用 @AfterThrowing 注解标记配置时执行。
-- **After (finally)** - 这些类型的 Advice 在连接点方法之后执行，无论方法退出是正常还是异常返回，并使用 @After 注解标记进行配置。
-- **Around** - 这些类型的 Advice 在连接点之前和之后执行，并使用 @Around 注解标记进行配置。
-
-
+**Spring AOP 属于运行时增强，而 AspectJ 是编译时增强。** 
 
 ## springAOP 项目中的实际应用
 
@@ -274,25 +281,64 @@ View是一个接口，实现类支持不同的View类型（jsp、freemarker、pd
 
 ## 常用注解
 
-* @Controller 负责注册一个bean 到spring 上下文中. 
+**类型类**
 
-* @ResponseBody 将java对象转换成json格式的字符串，返回给浏览器
+- @Controller：负责注册一个bean 到spring 上下文中
 
-  该注解用于将 Controller 的方法返回的对象，通过适当的 **HttpMessageConverter** 转换为指定格式后，写入到 Response 对象的 body 数据区。
+- @Service
 
-**HttpMessageConverter是处理器适配器创建的，用于数据转换**。
+- @Repository
 
-* @RequestBody 接收JSON数据
+- @Component
 
-  该注解用于读取 Request 请求的 body 部分数据，使用系统默认配置的 HttpMessageConverter 进行解析，然后把相应的数据绑定到要返回的对象上 
+- @Configuration：声明当前类为配置类，相当于xml形式的Spring配置 
 
-* @RequestController  **@RestController=@ResponseBody+@Controller** 
+- @Bean：注解在方法上，声明当前方法的返回值为一个 bean
 
-* @PathVariable   URL 中的 {xxx} 占位符可以通过@PathVariable(“xxx“) 绑定到操作方法的入参中。
+  **@Bean和@Component的区别**
+
+  * @Component 在类上使用，表示这是一个组件类，需要 Spring 为这个类创建 Bean
+
+  * @Bean 在方法上使用，告诉 Spring 这个方法将返回一个 Bean 对象，需要把返回的对象注册到应用上下文中
+
+**设置类**
+
+- @Required：确保值一定被设置
+- @Autowired && @Qualifier
+  - @Qualifier：当一个接口有多个实现的时候，为了指名具体调用哪个类的实现。 
+- @Scope：生命周期
+
+**Web类**
+
+- @RequestMapping && @GetMapping @ PostMapping
+
+  - RequestMapping：用于映射Web请求，包括访问路径和参数（类或方法上） 
+
+- @PathVariable && @RequestParam
+
+  - @PathVariable：用于接收路径参数，比如@RequestMapping(“/hello/{name}”)申明的路径，将注解放在参数中前，即可获取该值，通常作为Restful的接口实现方法。 
+
+- @RequestBody && @ResponseBody
+
+  - @RequestBody 接收JSON数据
+
+    该注解用于读取 Request 请求的 body 部分数据。允许request的参数在request体中，而不是在直接连接在地址后面。（放在参数前） 
+
+  - @ResponseBody 将java对象转换成json格式的字符串，返回给浏览器。该注解用于将 Controller 的方法返回的对象，写入到 Response 对象的 body 数据区。 （返回值旁或方法上） 
+
+
+**功能类**
+
+- @ImportResource：引用类
+- @ComponentScan：自动扫描
+- @EnableCaching && Cacheable： 开启注解式的缓存支持/缓存
+- @Transactional：开启事务
+- @Aspect && Poincut：切面和切点
+- @Scheduled：来申明这是一个任务 
+
+* @RequestController  **@RestController=@ResponseBody+@Controller** 意味着，该Controller的所有方法都默认加上了@ResponseBody。 
 
 * @ControllerAdvice 使一个Contoller成为全局的异常处理类,类中用@ExceptionHandler方法注解的方法可以处理所有Controller发生的异常。
-
-* RequestMapping 是一个用来处理请求地址映射的注解，可用于类或方法上。用于类上，表示类中的所有响应请求的方法都是以该地址作为父路径。 
 
 * @ModelAttribute最主要的作用是将数据添加到模型对象中，用于视图页面展示时使用。 等价于 model.addAttribute("attributeName", abc)。
 
@@ -335,7 +381,7 @@ View是一个接口，实现类支持不同的View类型（jsp、freemarker、pd
 
 在`@Transactional`注解中如果不配置`rollbackFor`属性,那么事物只会在遇到`RuntimeException`的时候才会回滚,加上`rollbackFor=Exception.class`,可以让事物在遇到非运行时异常时也回滚。
 
-## 事务传播行为⭐
+## 事务传播行为/机制⭐
 
 事务传播行为（propagation behavior）指的就是当一个事务方法被另一个事务方法调用时，这个事务方法应该如何进行。  
 
