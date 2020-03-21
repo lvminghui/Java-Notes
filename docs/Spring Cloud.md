@@ -6,7 +6,7 @@ Spring Cloud就是微服务系统架构的一站式解决方案，在平时我�
 
 **服务注册 Register** ：
 
-当 Eureka 客户端（服务提供者）向 Eureka Server 注册时，它提供自身的**元数据** ，比如IP地址、端口，运行状况指示符URL，主页等。
+当 Eureka 客户端（服务提供者）向 Eureka Server 注册时，它存储该服务的信息 ，比如IP地址、端口，运行状况指示符URL，主页等。
 
 **服务续约 Renew** ： 
 
@@ -14,7 +14,7 @@ Spring Cloud就是微服务系统架构的一站式解决方案，在平时我�
 
 **获取注册列表信息 Fetch Registries** ： 
 
-Eureka 客户端从服务器获取注册表信息，并将其缓存在本地。客户端会使用该信息查找其他服务，从而进行远程调用。该注册列表信息定期（每30秒钟）更新一次。每次返回注册列表信息如果与 Eureka  客户端的缓存信息不同,Eureka 客户端自动处理。Eureka  客户端和 Eureka 服务器可以使用JSON / XML格式进行通讯。
+Eureka 客户端从服务器获取注册表信息，并将其缓存在本地。客户端会使用该信息查找其他服务，从而进行远程调用。该注册列表信息定期（每30秒钟）更新一次。Eureka  客户端和 Eureka 服务器可以使用JSON / XML格式进行通讯。
 
 **服务下线 Cancel** ： 
 
@@ -26,9 +26,49 @@ Eureka 客户端在程序关闭时向 Eureka 服务器发送取消请求。发�
 
  **架构图**： 
 
-![image-20200229172633604](https://github.com/lvminghui/Java-Notes/blob/master/docs/imgs/Eureka.png)
+![image-20200229172633604](C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\image-20200229172633604.png)
 
  可以充当服务发现的组件有很多：Zookeeper ，Consul ， Eureka 等。 
+
+## Eureka 原理⭐
+
+Eureka 主要包括两块： Eureka Server 和 Eureka Client。 
+
+**Eureka Server，服务端**，有三个功能： **服务注册**  **提供注册表**  **同步状态**  
+
+**Eureka Client，客户端**，是一个 Java 客户端，用于简化与 Eureka Server 的交互。它会拉取、更新和缓存 Eureka Server 中的信息。因此当所有的 Eureka Server  节点都宕掉，服务消费者依然可以使用缓存中的信息找到服务提供者。**服务续约**， **服务剔除**， **服务下线** 的功能。
+
+Eurka 工作流程是这样的：
+
+1、Eureka Server 启动成功，等待服务端注册。
+
+2、Eureka Client 启动时根据配置的 Eureka Server 地址去注册中心注册服务
+
+3、Eureka Client 会每 30s 向 Eureka Server 发送一次心跳请求，证明客户端服务正常
+
+4、当 Eureka Server 90s 内没有收到 Eureka Client 的心跳，注册中心则认为该节点失效，会注销该实例
+
+5、单位时间内 Eureka Server 统计到有大量的 Eureka Client 没有上送心跳，则认为可能为网络异常，进入自我保护机制，不再剔除没有上送心跳的客户端
+
+6、当 Eureka Client 心跳请求恢复正常之后，Eureka Server 自动退出自我保护模式
+
+7、Eureka Client 定时从注册中心获取服务注册表，并且将获取到的信息缓存到本地
+
+8、服务调用时，Eureka Client 会先从本地缓存找寻调取的服务。如果获取不到，先从注册中心刷新注册表，再同步到本地缓存
+
+9、Eureka Client 获取到目标服务器信息，发起服务调用
+
+10、Eureka Client 程序关闭时向 Eureka Server 发送取消请求，Eureka Server 将实例从注册表中删除
+
+## Eureka 和 ZooKeeper 的区别 ⭐
+
+* C (Consistency) 强一致性
+* A(Availability) 可用性
+* P (Partition tolerance) 分区容错性 
+
+ Zookeeper保证的是CP，Eureka保证的是AP。
+
+**Eureka可以很好的应对因网络故障导致部分节点失去联系的情况，而不会像zookeeper那样使整 个注册服务瘫痪** 
 
 ### 负载均衡之 Ribbon
 
@@ -88,6 +128,10 @@ public News getHystrixNews(@PathVariable("id") int id) {
     // 返回当前人数太多，请稍后查看
 }
 ```
+
+## 服务熔断原理
+
+hystrix会监控微服务之间调用的状况，当失败的调用到一定阀值，缺省是5秒内20次调用失败就会启动熔断机制。熔断机制的注解是@HystrixCommand。 是通过spring 的 AOP 功能实现的 HystrixCommand 注解的方法是一个切点，有一个对方法增强的类，对他增强，如果出现失败就中断这个方法的调用，返回失败。
 
 ## 微服务网关——Zuul
 
@@ -180,3 +224,4 @@ zuul:  ignore-patterns:**/auto/**
 你可以简单理解为 `Spring Cloud Bus` 的作用就是**管理和广播分布式系统中的消息** ，也就是消息引擎系统中的广播模式。当然作为 **消息总线** 的 `Spring Cloud Bus` 可以做很多事而不仅仅是客户端的配置刷新功能。 
 
 而拥有了 `Spring Cloud Bus` 之后，我们只需要创建一个简单的请求，并且加上 `@ResfreshScope` 注解就能进行配置的动态修改了 。
+
