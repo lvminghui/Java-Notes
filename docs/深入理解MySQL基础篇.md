@@ -6,7 +6,7 @@ MySQL体系结构与存储引擎
 
 
 
-<img src="C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\MySQL架构.png" alt="image-20200409193156653" style="zoom: 80%;" />
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/MySQL%E6%9E%B6%E6%9E%84.png" style="zoom: 80%;" />
 
 
 
@@ -40,7 +40,7 @@ MySQLServer层主要包括ConnectionPool、Service&utilities、SQLinterface、Pa
 
 下面是一条SQL SELECT语句的执行过程：
 
-![image-20200409195137671](C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\SQL语句的执行流程.png)
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/SQL%E8%AF%AD%E5%8F%A5%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B.png" style="zoom: 80%;" />
 
 ## 存储引擎
 
@@ -48,7 +48,9 @@ MySQLServer层主要包括ConnectionPool、Service&utilities、SQLinterface、Pa
 
 InnoDB 存储引擎的具体架构如下图所示。上半部分是实例层（计算层），位于内存中，下半部分是物理层，位于文件系统中。
 
-![image-20200409203406407](C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\InnoDB架构.png)
+
+
+
 
 ### 实例层
 
@@ -90,7 +92,7 @@ Redo日志中包括多个Redo文件，这些文件循环使用，当达到一定
 
 内存和物理结构，如下图所示。
 
-![image-20200409211559382](C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\内存和物理结构.png)
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/%E5%86%85%E5%AD%98%E5%92%8C%E7%89%A9%E7%90%86%E7%BB%93%E6%9E%84.png" style="zoom: 80%;" />
 
 **BufferPool**
 
@@ -127,7 +129,7 @@ InnoDB 表最大还可以支持 64TB，支持聚簇索引、支持压缩数据�
 
 ## InnoDB 核心要点
 
-![image-20200409213909122](C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\InnoDB知识体系.png)
+<img src="https://github.com/lvminghui/Java-Notes/tree/master/docs/typora-user-images" style="zoom: 80%;" />
 
 
 
@@ -236,7 +238,7 @@ MVCC最大的好处是读不加锁，读写不冲突。在读多写少的OLTP（
 
 假设 F1～F6 是表中字段的名字，1～6 是其对应的数据。后面三个隐含字段分别对应该行的隐含ID、事务号和回滚指针，如下图所示。
 
-<img src="C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\MVCC实现.png" alt="image-20200412113401177" style="zoom:80%;" />
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/MVCC%E5%AE%9E%E7%8E%B0.png" alt="image-20200412113401177" style="zoom:80%;" />
 
 * 隐含ID（DB_ROW_ID），6个字节，当由InnoDB自动产生聚集索引时，聚集索引包括这个DB_ROW_ID的值。
 * 事务号（DB_TRX_ID），6个字节，标记了最新更新这条行记录的TransactionID，每处理一个事务，其值自动+1。
@@ -246,7 +248,7 @@ MVCC最大的好处是读不加锁，读写不冲突。在读多写少的OLTP（
 
 然后，当事务 1 更改该行的数据值时，会进行如下操作，如下图所示。
 
-<img src="C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\MVCC实现2.png" alt="image-20200412114231370" style="zoom:80%;" />
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/MVCC%E5%AE%9E%E7%8E%B02.png" style="zoom:80%;" />
 
 * 用排他锁锁定该行；记录 Redo log
 * 把该行修改前的值复制到 Undo log，即图中下面的行
@@ -254,7 +256,7 @@ MVCC最大的好处是读不加锁，读写不冲突。在读多写少的OLTP（
 
 如果数据继续执行，此时Undolog中有两行记录，并且通过回滚指针连在一起。因此，如果Undolog一直不删除，则会通过当前记录的回滚指针回溯到该行创建时的初始内容，所幸的是在InnoDB中存在purge 线程，它会查询那些比现在最老的活动事务还早的 Undo log，并删除它们，从而保证 Undo log 文件不会无限增长，如下图所示。
 
-<img src="C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\MVCC3.png" alt="image-20200412114717168" style="zoom:80%;" />
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/MVCC3.png" style="zoom:80%;" />
 
 ## 并发事务问题及解决方案
 
@@ -295,7 +297,7 @@ InnoDB 锁关系矩阵如下图，其中：+ 表示兼容，- 表示不兼容。
 
 
 
-<img src="C:\Users\吕明辉\AppData\Roaming\Typora\typora-user-images\InnoDB 锁关系矩阵.png" alt="image-20200412154240668" style="zoom:80%;" />
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/InnoDB%20%E9%94%81%E5%85%B3%E7%B3%BB%E7%9F%A9%E9%98%B5.png"  style="zoom:80%;" />
 
 ### InnoDB 行锁
 
