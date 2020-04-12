@@ -1,4 +1,4 @@
-MySQL体系结构与存储引擎
+# MySQL体系结构与存储引擎
 
 ## MySQL体系结构
 
@@ -49,7 +49,7 @@ MySQLServer层主要包括ConnectionPool、Service&utilities、SQLinterface、Pa
 InnoDB 存储引擎的具体架构如下图所示。上半部分是实例层（计算层），位于内存中，下半部分是物理层，位于文件系统中。
 
 
-
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/InnoDB%E6%9E%B6%E6%9E%84.png" style="zoom: 80%;" />
 
 
 ### 实例层
@@ -129,7 +129,8 @@ InnoDB 表最大还可以支持 64TB，支持聚簇索引、支持压缩数据�
 
 ## InnoDB 核心要点
 
-<img src="https://github.com/lvminghui/Java-Notes/tree/master/docs/typora-user-images" style="zoom: 80%;" />
+
+<img src="https://github.com/lvminghui/Java-Notes/blob/master/docs/typora-user-images/InnoDB知识体系.png" style="zoom: 80%;" />
 
 
 
