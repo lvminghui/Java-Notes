@@ -43,7 +43,8 @@
 ## MySQL
 - [MySQL 面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/MySQL%E9%9D%A2%E8%AF%95%E9%A2%98.md)
 - [MySQL 常见知识点总结](https://github.com/lvminghui/Java-Notes/blob/master/docs/MySQL%E5%B8%B8%E8%A7%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93.md)
-**深入理解 MySQL**
+
+### 深入理解 MySQL
 - [基础篇](https://github.com/lvminghui/Java-Notes/blob/master/docs/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3MySQL%E5%9F%BA%E7%A1%80%E7%AF%87.md)
 ## Redis
 - [Redis 面试题](https://github.com/lvminghui/Java-Notes/blob/master/docs/Redis%20%E9%9D%A2%E8%AF%95%E9%A2%98.md)
