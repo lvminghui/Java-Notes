@@ -6,6 +6,7 @@
 
 - SecureCRT
 - xshell
+- FinalShell
 
 ## 常用命令（重要）
 
